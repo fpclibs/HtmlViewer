@@ -257,6 +257,7 @@ type
     FOnLoadHistoryItem: TLoadHistoryItem;
     FOnSectionClick: TSectionMouseClickEvent; //>-- DZ 17.09.2012
     FOnSectionOver: TSectionMouseMoveEvent; //>-- DZ 17.09.2012
+    fOnPaint: TPaintEvent;
 
     // status info
     FViewerState: THtmlViewerState;
@@ -734,7 +735,7 @@ type
 //-- BG ---------------------------------------------------------- 12.05.2013 --
 procedure InitFileTypes;
 const
-  FileTypeDefinitions: array [1..34] of TFileTypeRec = (
+  FileTypeDefinitions: array [1..23] of TFileTypeRec = (
     (FileExt: '.htm';   FileType: HTMLType),
     (FileExt: '.html';  FileType: HTMLType),
 
@@ -763,21 +764,7 @@ const
     (FileExt: '.emf';   FileType: ImgType),
     (FileExt: '.wmf';   FileType: ImgType),
     (FileExt: '.tiff';  FileType: ImgType),
-    (FileExt: '.tif';   FileType: ImgType),
-
-    (FileExt: '.mp3';   FileType: AudioType),
-    (FileExt: '.ogg';   FileType: AudioType),
-
-    (FileExt: '.mp4';   FileType: VideoType),
-    (FileExt: '.webm';  FileType: VideoType),
-    (FileExt: '.mkv';   FileType: VideoType),
-    (FileExt: '.mpg';   FileType: VideoType),
-    (FileExt: '.mpeg';  FileType: VideoType),
-    (FileExt: '.wmv';   FileType: VideoType),
-    (FileExt: '.flv';   FileType: VideoType),
-    (FileExt: '.avi';   FileType: VideoType),
-
-    (FileExt: '.pdf';   FileType: PdfType)
+    (FileExt: '.tif';   FileType: ImgType)
   );
 var
   I: Integer;
