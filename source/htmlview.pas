@@ -196,6 +196,8 @@ type
 
   TLoadHistoryItem = procedure(Sender: TObject; HI: ThvHistoryItem; var Handled: Boolean) of object;
 
+  TPaintEvent = procedure(Sender: TObject) of object;
+
   //TODO -oBG, 16.08.2015: split THtmlViewer into ThtBase and THtmlViewer.
   //
   // ThtBase (or a derivate of it) will be the control that TFVBase will create
@@ -255,6 +257,7 @@ type
     FOnLoadHistoryItem: TLoadHistoryItem;
     FOnSectionClick: TSectionMouseClickEvent; //>-- DZ 17.09.2012
     FOnSectionOver: TSectionMouseMoveEvent; //>-- DZ 17.09.2012
+    fOnPaint: TPaintEvent;
 
     // status info
     FViewerState: THtmlViewerState;
@@ -653,6 +656,7 @@ type
     property OnSectionClick: TSectionMouseClickEvent read FOnSectionClick write FOnSectionClick; //>-- DZ 17.09.2012
     property OnSectionOver: TSectionMouseMoveEvent read FOnSectionOver write FOnSectionOver; //>-- DZ 17.09.2012
     property OnSoundRequest;
+    property OnPaint: TPaintEvent read fOnPaint write fOnPaint;
     //
     property Align;
     property Anchors;
@@ -743,6 +747,8 @@ const
     (FileExt: '.xhtml'; FileType: XHtmlType),
     (FileExt: '.xht';   FileType: XHtmlType),
 
+    (FileExt: '.txt';   FileType: TextType),
+
     (FileExt: '.gif';   FileType: ImgType),
     (FileExt: '.jpg';   FileType: ImgType),
     (FileExt: '.jpeg';  FileType: ImgType),
@@ -758,9 +764,7 @@ const
     (FileExt: '.emf';   FileType: ImgType),
     (FileExt: '.wmf';   FileType: ImgType),
     (FileExt: '.tiff';  FileType: ImgType),
-    (FileExt: '.tif';   FileType: ImgType),
-
-    (FileExt: '.txt';   FileType: TextType)
+    (FileExt: '.tif';   FileType: ImgType)
   );
 var
   I: Integer;
@@ -1332,7 +1336,7 @@ begin
       end;
     finally
       Exclude(FViewerState, vsDontDraw);
-      if LoadCursor <> crNone then
+      if LoadCursor <> crDefault then
         Screen.Cursor := OldCursor;
     end;
   finally
@@ -2660,9 +2664,14 @@ begin
     Exit;
   if Value <> FSectionList.ShowImages then
   begin
-    OldCursor := Screen.Cursor;
+    if LoadCursor <> crDefault then
+    begin
+      OldCursor := Screen.Cursor;
+      Screen.Cursor := LoadCursor;
+    end
+    else
+      OldCursor := crDefault; // valium for the compiler
     try
-      Screen.Cursor := crHourGlass;
       SetProcessing(True);
       FSectionList.ShowImages := Value;
       if FSectionList.Count > 0 then
@@ -2674,7 +2683,8 @@ begin
         Invalidate;
       end;
     finally
-      Screen.Cursor := OldCursor;
+      if LoadCursor <> crDefault then
+        Screen.Cursor := OldCursor;
       SetProcessing(False);
     end;
   end;
@@ -3576,6 +3586,11 @@ begin
   end;
 
   FSectionList.Draw(ACanvas, ARect, MaxHScroll, -HScrollBar.Position, 0, 0, 0);
+
+  //OnPaint
+  if Assigned(fOnPaint) then begin
+    fOnPaint(Self);
+  end;
 end;
 
 function THtmlViewer.MakeBitmap(YTop, FormatWidth, Width, Height: Integer): TBitmap;
@@ -3884,6 +3899,7 @@ begin
   OK := False;
   if (MediaQuery.MediaType in [mtAll, mtScreen]) xor MediaQuery.Negated then
   begin
+	OK := True; // even there are no expressions, we force to re-init OK-value valid, because it matches
     for I := Low(MediaQuery.Expressions) to High(MediaQuery.Expressions) do
     begin
       OK := EvaluateExpression(MediaQuery.Expressions[I]);
@@ -4772,7 +4788,7 @@ end;
 procedure THtmlViewer.PaintWindow(DC: HDC);
 begin
   PaintPanel.RePaint;
-  BorderPanel.RePaint;
+//  BorderPanel.RePaint;
   VScrollbar.RePaint;
   HScrollbar.RePaint;
 end;
